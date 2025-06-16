@@ -1,31 +1,59 @@
-const navbar = document.getElementById('navbar');
-const navLinks = document.querySelectorAll('.nav-link');
-const hamburger = document.getElementById('hamburger');
-const navMenu = document.getElementById('nav-menu');
+const boardElement = document.getElementById('board');
+const statusElement = document.getElementById('status');
+const resetButton = document.getElementById('resetBtn');
 
-// Scroll effect for navbar
-window.addEventListener('scroll', () => {
-  if (window.scrollY > 50) {
-    navbar.classList.add('scrolled');
-  } else {
-    navbar.classList.remove('scrolled');
+let currentPlayer = 'X';
+let board = ['', '', '', '', '', '', '', '', ''];
+let gameActive = true;
+
+function renderBoard() {
+  boardElement.innerHTML = '';
+  board.forEach((cell, index) => {
+    const cellElement = document.createElement('div');
+    cellElement.classList.add('cell');
+    cellElement.textContent = cell;
+    cellElement.addEventListener('click', () => handleCellClick(index));
+    boardElement.appendChild(cellElement);
+  });
+}
+
+function handleCellClick(index) {
+  if (board[index] !== '' || !gameActive) return;
+
+  board[index] = currentPlayer;
+  renderBoard();
+  if (checkWin()) {
+    statusElement.textContent = `Player ${currentPlayer} wins!`;
+    gameActive = false;
+    return;
+  } else if (board.every(cell => cell !== '')) {
+    statusElement.textContent = "It's a draw!";
+    gameActive = false;
+    return;
   }
 
-  let fromTop = window.scrollY + 60;
-  navLinks.forEach(link => {
-    const section = document.querySelector(link.getAttribute('href'));
-    if (
-      section.offsetTop <= fromTop &&
-      section.offsetTop + section.offsetHeight > fromTop
-    ) {
-      link.classList.add('active');
-    } else {
-      link.classList.remove('active');
-    }
-  });
-});
+  currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+  statusElement.textContent = `Player ${currentPlayer}'s turn`;
+}
 
-// Toggle mobile menu
-hamburger.addEventListener('click', () => {
-  navMenu.classList.toggle('show');
-});
+function checkWin() {
+  const winCombos = [
+    [0,1,2], [3,4,5], [6,7,8],
+    [0,3,6], [1,4,7], [2,5,8],
+    [0,4,8], [2,4,6]
+  ];
+  return winCombos.some(combo => {
+    return combo.every(i => board[i] === currentPlayer);
+  });
+}
+
+function resetGame() {
+  currentPlayer = 'X';
+  board = ['', '', '', '', '', '', '', '', ''];
+  gameActive = true;
+  statusElement.textContent = `Player ${currentPlayer}'s turn`;
+  renderBoard();
+}
+
+resetButton.addEventListener('click', resetGame);
+renderBoard();
